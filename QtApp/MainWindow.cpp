@@ -149,3 +149,99 @@ void MainWindow::on_btnPolar_redraw_clicked()
 {
 
 }
+
+void MainWindow::on_actOpenFolder_triggered()
+{
+
+}
+
+
+void MainWindow::on_pushButton_clicked()
+{
+
+}
+
+
+void MainWindow::on_btn_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnRun_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnBreakData_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnCloseData_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnDraw_curve_clicked()
+{
+
+}
+
+
+void MainWindow::on_doubleSpinBox_valueChanged(double arg1)
+{
+
+}
+
+
+void MainWindow::on_btnDraw_BDErrorBar_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnDraw_BDErrorBar_2_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnDraw_CDErrorBar_clicked()
+{
+
+}
+
+
+void MainWindow::on_btn_DrawBDHist_clicked()
+{
+
+}
+
+
+void MainWindow::on_btnDraw_CDHist_clicked()
+{
+
+}
+
+
+void MainWindow::on_dsb_BD_low_lim_valueChanged(double arg1)
+{
+
+}
+
+
+void MainWindow::on_dsb_BD_up_lim_valueChanged(double arg1)
+{
+
+}
+
+
+void MainWindow::on_dsb_BD_step_valueChanged(double arg1)
+{
+
+}
+

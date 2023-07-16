@@ -73,7 +73,39 @@ private slots:
 
    void on_btnPolar_redraw_clicked();
 
-private:
+   void on_actOpenFolder_triggered();
+
+   void on_pushButton_clicked();
+
+   void on_btn_clicked();
+
+   void on_btnRun_clicked();
+
+   void on_btnBreakData_clicked();
+
+   void on_btnCloseData_clicked();
+
+   void on_btnDraw_curve_clicked();
+
+   void on_doubleSpinBox_valueChanged(double arg1);
+
+   void on_btnDraw_BDErrorBar_clicked();
+
+   void on_btnDraw_BDErrorBar_2_clicked();
+
+   void on_btnDraw_CDErrorBar_clicked();
+
+   void on_btn_DrawBDHist_clicked();
+
+   void on_btnDraw_CDHist_clicked();
+
+   void on_dsb_BD_low_lim_valueChanged(double arg1);
+
+   void on_dsb_BD_up_lim_valueChanged(double arg1);
+
+   void on_dsb_BD_step_valueChanged(double arg1);
+
+   private:
     Ui::MainWindow *ui;
 };
 
