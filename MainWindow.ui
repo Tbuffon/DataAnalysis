@@ -30,14 +30,14 @@
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <property name="documentMode">
        <bool>true</bool>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
-        <string>散点密度图</string>
+        <string>电导率-光电流特征分析</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_11">
         <property name="leftMargin">
@@ -140,7 +140,7 @@
       </widget>
       <widget class="QWidget" name="tab_2">
        <attribute name="title">
-        <string>曲线图</string>
+        <string>电导率-光电流相关性分析</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <property name="leftMargin">
@@ -236,7 +236,7 @@
       </widget>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
-        <string>误差棒图</string>
+        <string>数据分布分析</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_8">
         <property name="leftMargin">
@@ -474,7 +474,7 @@
       </widget>
       <widget class="QWidget" name="tab_4">
        <attribute name="title">
-        <string>直方图</string>
+        <string>电导率分布规律分析</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <property name="leftMargin">
@@ -623,7 +623,11 @@
      <height>19</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu"/>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string/>
+    </property>
+   </widget>
    <widget class="QMenu" name="menu_2">
     <property name="autoFillBackground">
      <bool>false</bool>
