@@ -2,7 +2,7 @@
 
 import sys, os, time
 
-from PyQt5.QtWidgets import  QApplication, QMainWindow, QFileDialog
+from PyQt5.QtWidgets import  QApplication, QMainWindow, QFileDialog, QMessageBox 
 
 from PyQt5.QtCore import  pyqtSlot,QCoreApplication,Qt
 
@@ -21,6 +21,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from ui_MainWindow import Ui_MainWindow
 
 from myFigureCanvas import QmyFigureCanvas
+
+from nptdms import TdmsFile
 
 class QmyMainWindow(QMainWindow): 
 
@@ -321,6 +323,7 @@ class QmyMainWindow(QMainWindow):
       return list_t,photocurrent,current,ref
    
    def __getLabels(self, filename): ##获取标签
+    filename = os.path.basename(filename)
     bias_voltage=float(filename[filename.index('Bias')+4:filename.index('mV')])/1000
     wavelength=float(filename[filename.index('Wavelength')+10:filename.index('nm')])
     pump_power=float(filename[filename.index('Power')+5:filename.index('mW')])
@@ -328,19 +331,16 @@ class QmyMainWindow(QMainWindow):
     labels=[bias_voltage,wavelength,pump_power,freq]
     conditions_filename='Bias'+str(labels[0])+'mV_'+'Wavelength'+str(labels[1])+'nm_'+'Power'+str(labels[2])+'mW_'+'Freq'+str(labels[3])+'Hz'
     return labels,conditions_filename
+   
+   def __getGain(self, filename):
+      AI0_Gain=float(filename[filename.index('AI0Gain')+7:filename.index('K_')])*1000
+      AI1_Gain=float(filename[filename.index('AI1Gain')+7:filename.index('M')])*1000000
+      AI2_Gain=float(filename[filename.index('AI2Gain')+7:filename.index('M2')])*1000000
+      return AI0_Gain,AI1_Gain,AI2_Gain
 
    def __ImportData(self, photocurrent_file): ##导入数据
-      self.labels,self.conditions_filename=self.__getLabels(photocurrent_file[0])
-      self.data=pd.DataFrame(self.list_t,columns=['Time s'])
-      self.data['Photocurrent A']=pd.DataFrame(self.photocurrent)
-      self.data['Current A']=pd.DataFrame(self.current)
-      self.data['Ref A']=pd.DataFrame(self.ref)
-      self.data['Conductance G/G0']=self.data['Current A']/(np.sqrt(2)*self.labels[0]*self.quan_conduc)
-      self.data['Conductance logG/G0']=np.log10(self.data['Conductance G/G0'])
-      self.data['Diff_Photocurrent A']=self.data['Photocurrent A']-self.data['Ref A']
-      self.data['PC/Current']=self.data['Photocurrent A']/(self.data['Current A']/np.sqrt(2))
-      self.data['Ref/Current']=self.data['Ref A']/(self.data['Current A']/np.sqrt(2))
-      
+      pass
+
    def __reduceDataPoints(self, data_pd):
       reduced_data_pd=data_pd[(self.data['Conductance G/G0']<=6.5)]
       rr_test=reduced_data_pd.reset_index(drop=True)
@@ -404,8 +404,47 @@ class QmyMainWindow(QMainWindow):
       time_list=[]
       for i in range(0,curve_num):
          time_list.extend(np.linspace(0,datalenth[i]*dt,datalenth[i]))
-      # self.close_data['time ms']=time_list
-         
+      self.close_data['time ms']=time_list
+
+   def set_load_state(self, file_list):
+      """
+      设置文件加载状态
+      :param file_list: 调用FileDialog得到的文件列表
+      :return: Boolean
+      """
+      if (len(file_list) > 0):
+         return True
+      return False
+   
+   def loadSingleFile(self, file_path):
+      """
+      加载单个文件
+      :param file_path: 文件路径
+      :return: 电流、参考电流、光电流(numpy)
+      """
+      with TdmsFile.open(file_path) as tdms_file:
+         current = tdms_file.groups()[0]["RT-IO:AI0 Volt. [V]"][:]
+         ref = tdms_file.groups()[0]["RT-IO:AI1 Volt. [V]"][:]
+         photocurrent = tdms_file.groups()[0]["RT-IO:AI2 Volt. [V]"][:]
+         original_data = np.vstack((current, ref, photocurrent))
+      return original_data
+   
+   def loadMultiFiles(self, file_list):
+      """
+      加载多个文件
+      :param file_list: 文件路径列表
+      :return: 电流、参考电流、光电流(numpy)
+      """
+      original_data = np.array([[],[],[]])
+      for file_path in file_list:
+         try:
+            temp = self.loadSingleFile(file_path)  # 读取单个文件
+            original_data = np.concatenate((original_data, temp), axis=1)  # 拼接数据
+         except Exception as e:
+            errMsg = f"数据文件部分异常，文件名：{file_path},异常信息：{e}"
+            QMessageBox.warning(self, "Warning", errMsg)
+      
+      return original_data
       
 ##  ==============event处理函数==========================
 
@@ -416,31 +455,57 @@ class QmyMainWindow(QMainWindow):
    @pyqtSlot() 
    def on_actImportData_triggered(self):
       """导入数据"""
-      # 找到文件夹内所有文件
-      folder_path = QFileDialog.getExistingDirectory(self, "选择文件夹", "./")
-      if folder_path:
-         self.ui.logOutputText.appendPlainText("打开文件夹：" + folder_path)
-      os.chdir(folder_path)
-      filedir=os.listdir(os.getcwd())
-      photocurrent_file=[]
-      for filename in filedir:
-         if  filename.startswith('Bias')&filename.endswith('.txt'):
-            photocurrent_file.append(filename)
-      self.ui.logOutputText.appendPlainText("文件夹中的文件有：" + str(photocurrent_file))
-      QCoreApplication.processEvents()
 
-      # 读取数据
-      start_time = time.perf_counter()
-      self.list_t,self.photocurrent,self.current,self.ref = self.__getAllData(photocurrent_file)
-      time_used = (time.perf_counter() - start_time)
-      # print("Time used: %s s" % (int(time_used)),'/n','==== Done! ====')
-      str_finish = "Time used: %s s" % (int(time_used)) + '\n' + '==== Done! ===='
-      self.ui.logOutputText.appendPlainText(str_finish)
+      # 导入tdms原始数据
+      original_data = None
+      try:
+         dlg_title = "Select multiple files" # 对话框标题
+         filt = "TDMS Files(*.tdms)" # 文件扩展名过滤器
+         load_statue = False  # 是否成功导入数据
+         while not load_statue:
+            file_list, filt_used = QFileDialog.getOpenFileNames(self, dlg_title, '',filt)
+            load_statue = self.set_load_state(file_list)
+            if load_statue:
+               self.ui.logOutputText.appendPlainText("正在导入tdms原始数据，请稍候......")
+               QCoreApplication.processEvents()
+               start_time = time.perf_counter()
+
+               if len(file_list) == 1:
+                  original_data = self.loadSingleFile(file_list[0])
+               else:
+                  original_data = self.loadMultiFiles(file_list)
+               
+               time_used = (time.perf_counter() - start_time)
+               str_finish = "Time used: %s s" % (time_used)
+               self.ui.logOutputText.appendPlainText(str_finish)
+            else:
+               result = QMessageBox.warning(self, "Warning", "Please select at least one file!",
+                                             QMessageBox.Ok | QMessageBox.Cancel,
+                                             QMessageBox.Ok)
+               if result == QMessageBox.Cancel:
+                  break
+
+      except Exception as e:
+         errMsg = f"DATA FILE LOAD ERROR:{e}"
+         QMessageBox.warning(self, "Warning", errMsg)
 
       # 导入数据
-      self.__ImportData(photocurrent_file)
-      self.ui.logOutputText.appendPlainText("\n数据导入完成！")
+      self.ui.logOutputText.appendPlainText("正在将tdms原始数据转换为padas数据，请稍候......")
       QCoreApplication.processEvents()
+      start_time = time.perf_counter()
+      self.labels,self.conditions_filename=self.__getLabels(file_list[0]) ##获取标签
+      AI0_Gain,AI1_Gain,AI2_Gain=self.__getGain(file_list[0]) ##获取增益
+      self.data = pd.DataFrame(original_data[0]/AI0_Gain, columns = ['Current A'])
+      self.data['Photocurrent A']=pd.DataFrame(original_data[2]/AI1_Gain)
+      self.data['Ref A']=pd.DataFrame(original_data[1]/AI2_Gain)
+      self.data['Conductance G/G0']=self.data['Current A']/(np.sqrt(2)*self.labels[0]*self.quan_conduc)
+      self.data['Conductance logG/G0']=np.log10(self.data['Conductance G/G0'])
+      self.data['Diff_Photocurrent A']=self.data['Photocurrent A']-self.data['Ref A']
+      self.data['PC/Current']=self.data['Photocurrent A']/(self.data['Current A']/np.sqrt(2))
+      self.data['Ref/Current']=self.data['Ref A']/(self.data['Current A']/np.sqrt(2))
+      time_used = (time.perf_counter() - start_time)
+      str_finish = "Time used: %s s" % (time_used)
+      self.ui.logOutputText.appendPlainText(str_finish)
 
       # 分割数据
       start_time = time.perf_counter()
@@ -452,6 +517,7 @@ class QmyMainWindow(QMainWindow):
       str_finish = "Time used: %s s" % (int(time_used)) + '\n' + '==== Done! ===='
       self.ui.logOutputText.appendPlainText(str_finish)
       self.ui.logOutputText.appendPlainText("\n数据分割完成！")
+
 ##===========page 1 散点密度图============
    @pyqtSlot()  ##绘制All_data散点密度图
    def on_btnRun_clicked(self):
