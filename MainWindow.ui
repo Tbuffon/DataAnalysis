@@ -690,7 +690,7 @@
   </action>
   <action name="actImportData">
    <property name="text">
-    <string>导入文件夹</string>
+    <string>导入数据文件</string>
    </property>
   </action>
  </widget>

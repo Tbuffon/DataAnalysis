@@ -368,6 +368,6 @@ class Ui_MainWindow(object):
         self.actScatterAgain.setToolTip(_translate("MainWindow", "重新生成散点数据"))
         self.actSetCursor.setText(_translate("MainWindow", "十字光标"))
         self.actSetCursor.setToolTip(_translate("MainWindow", "设置为十字光标"))
-        self.actImportData.setText(_translate("MainWindow", "导入文件夹"))
+        self.actImportData.setText(_translate("MainWindow", "导入数据文件"))
 from myFigureCanvas import QmyFigureCanvas
 import res_rc
